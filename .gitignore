@@ -1,0 +1,12 @@
+**/*.idea/
+**/*.DS_Store
+
+**/*__pycache__/
+**/*egg-info/
+**/*.pytest_cache/
+**/*.coverage
+**/*.ipynb_checkpoints/
+
+**/venv_*/
+**/venv_game
+**/venv/
