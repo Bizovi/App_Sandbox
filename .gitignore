@@ -10,3 +10,8 @@
 **/venv_*/
 **/venv_game
 **/venv/
+.vscode/settings.json
+.vscode/
+
+**/elm-stuff/
+**/build/
