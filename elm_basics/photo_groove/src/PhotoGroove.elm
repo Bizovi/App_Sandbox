@@ -3,7 +3,9 @@ module PhotoGroove exposing (main)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
+
 import Array exposing (Array)
+import Random
 
 import Browser
 
@@ -24,10 +26,19 @@ type alias Photo =
 type alias Model = 
     { photos : List Photo
     , selectedUrl : String
+    , chosenSize : ThumbnailSize
     }
 
-type alias Msg = 
-    { description : String, data: String }
+type ThumbnailSize
+    = Small
+    | Medium
+    | Large
+
+type Msg 
+    = ClickedPhoto String
+    | ClickedSize ThumbnailSize
+    | ClickedSurpriseMe 
+    | GotSelectedIndex Int
 
 
 -- define the initial model (describing state by records)
@@ -39,23 +50,48 @@ initialModel =
         , { url = "3.jpeg" }
         ]
     , selectedUrl = "2.jpeg"
+    , chosenSize = Large
     }
 
+-- need an array to be able to access elements
 photoArray : Array Photo
 photoArray = 
     Array.fromList initialModel.photos
 
+-- helper to get the photo url from index
+getPhotoUrl : Int -> String
+getPhotoUrl index = 
+    case Array.get index photoArray of 
+        -- cover all possible values of maybe (Just, Nothing)
+        Just photo ->  -- Just : smth -> Maybe smth (<= 1 element)
+            photo.url
+        
+        Nothing ->
+            ""
 
-update : Msg -> Model -> Model
+randomPhotoPicker : Random.Generator Int
+randomPhotoPicker =
+    Random.int 0 (Array.length photoArray - 1)
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model = 
     {- Expected message is in the following format
        msg.description = "ClickedPhoto"
      , msg.data = "2.jpeg"
     -}
-    if msg.description == "ClickedPhoto" then
-        { model | selectedUrl = msg.data }
-    else
-        model -- whatever happens, should return a new model
+    case msg of 
+        GotSelectedIndex index -> 
+            ( { model | selectedUrl = getPhotoUrl index }, Cmd.none )
+
+        ClickedPhoto url ->
+            ( { model | selectedUrl = url }, Cmd.none )
+        
+        ClickedSize size ->
+            ( { model | chosenSize = size }, Cmd.none )
+        
+        ClickedSurpriseMe ->
+            ( model, Random.generate GotSelectedIndex randomPhotoPicker )
 
 
 view : Model -> Html Msg
@@ -66,7 +102,16 @@ view model =
     div [ class "content" ]
         [ h1 [ align "center" ] [ text "Photo Groove" ]
         , br [] []
-        , div [ id "thumbnails", align "center"] 
+        -- add button for choosing the size of thumbnail
+        , button [ onClick ClickedSurpriseMe ] 
+            [ text "Surprise Me!" ]
+        -- end of buttons
+        -- radio buttons for thumbnail size
+        , h3 [] [ text "Thumbnail Size:" ]
+        , div [ id "choose-size" ] 
+            (List.map viewSizeChooser [ Small, Medium, Large ])
+        -- end of radio buttons
+        , div [ id "thumbnails", align "left", class (sizeToString model.chosenSize) ] 
             -- the following works because of partial application of function
             -- (\photo -> vT model.selectedUrl photo)
             ( List.map (viewThumbnail model.selectedUrl) model.photos )
@@ -87,13 +132,37 @@ viewThumbnail selectedUrl thumb =
     img 
         [ src (urlPrefix ++ thumb.url) 
         , classList [ ( "selected", selectedUrl == thumb.url ) ]
-        , onClick { description = "ClickedPhoto", data = thumb.url }
+        , onClick (ClickedPhoto thumb.url)
         ] []
 
 
+viewSizeChooser : ThumbnailSize -> Html Msg
+viewSizeChooser size = 
+    label []
+        [ input [ type_ "radio"
+                , name "size"
+                , onClick (ClickedSize size) 
+                ] []
+        , text (sizeToString size)
+        ]
+
+sizeToString : ThumbnailSize -> String
+sizeToString size = 
+    case size of 
+        Small ->
+            "small"
+        Medium -> 
+            "med"
+        Large ->
+            "large"
+
+
+main : Program () Model Msg  -- () is an unit
 main = 
-    Browser.sandbox
-        { init = initialModel
+    Browser.element
+        { init = \flags -> ( initialModel, Cmd.none )
         , view = view
         , update = update
+        , subscriptions = \model -> Sub.none
         }
+        
