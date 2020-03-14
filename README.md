@@ -7,6 +7,13 @@ A playground for Flask, Dash, Shiny applications, APIs, Cloud architecture. Some
 
 A course by [testdriven.io](https://testdriven.io) which fits perfectly with my current needs. Instead of deploying on AWS, I will be using Google Cloud Platform and corresponding services (e.g. Cloud Run, AppEngine, Endpoints).
 
+### FastAPI
+Experiments with the [FastAPI](https://fastapi.tiangolo.com/) framework for developing RESTful APIs. The features should help speed up the development in contrast with doing everything manually in Flask.
+
+```bash
+pip install fastapi  # the package
+pip install uvicorn  # production server
+```
 
 ## Experimenting with Streamlit dashboards
 
