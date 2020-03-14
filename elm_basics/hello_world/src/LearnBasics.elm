@@ -1,27 +1,34 @@
--- This file is meant to be ran in REPL
+{-
+    This script explores the basic syntax of Elm, not diving into web apps
+    It is meant to be run in the REPL and is not a working app otherwise.
+-}
+
+-- loading packages
 import Tuple exposing (..)
 
+{-
+    ==== Variables, constants, expressions and control flow =====
+    =============================================================
+-}
 pi_message = 
     "Pi has the value of (around) " ++ String.fromFloat pi ++ "."
 
-
-my_name = "Mihai"  -- can't reassign it later (const)
-
+my_name = "Mihai"  -- can't reassign it later (constant)
 greet_name = 
-    if my_name == "Mihai" then "Ceva" else "Altceva"
+    if my_name == "Mihai" then "Hello, Mihai!" else "Hello, Stranger!"
 
+{-
+    Boolean operations look like this, similar to other programming languages
+    Except the weird sign for not equal '/='
+    -- 1 + 1 == 2
+    -- (1 + 1 /= 2) || (True && False)
+-}
 
--- 1 + 1 == 2
--- (1 + 1 /= 2) || (True && False)
-
-elfLabel value = 
-    if value == 1 then "elf" else "elves"
-
-
-elfLabel 1
-
-
-elfCounts = [0, 1, 2, 3, -1]
+{-
+    ==== Functions, lists and elements of Functional Programming =====
+    ==================================================================
+-}
+elf_counts = List.range -1 5
 nameOfElf elfCount = 
     if elfCount == 1 then
         "elf"
@@ -30,59 +37,56 @@ nameOfElf elfCount =
     else
         "anti-elves"
 
-List.map nameOfElf elfCounts
+-- note that << is a function composition operator
+elf_counts |> List.map (String.toUpper << nameOfElf) 
+
 
 -- isKeepable : Char -> Bool
 isKeepable character = character /= '-'
-String.filter isKeepable "800-555-1234"
 
--- wrapping it up in a function
 -- normalizePhoneNumber : String -> String
 normalizePhoneNumber number = 
     String.filter isKeepable number
+phone_number = normalizePhoneNumber "800-555-1234"
 
-normalizePhoneNumber "800-555-1234"
-
-{-
-Scoping in elm with a let statement
--}
+-- Scoping in elm with a let statement
 withoutDashes number = 
     let 
         dash = '-'
-        isKeepable2 character = 
-            character /= dash
+        isKeepable2 character = character /= dash
     in
     String.filter isKeepable2 number
 
-
 withoutDashes "800-555-1234"
 
--- these are equivalent
+-- these are equivalent for the use-case
 String.filter (\ x -> Char.isDigit x ) "800-555-1234"
 String.filter Char.isDigit "800-555-1234"
-
 String.filter (\ x -> x /= '-') "(800)-555-1234"
-
+["(800)-555-1234", "800-555-1234"] |> List.map (String.filter Char.isDigit)
+ 
 -- interesting question of a safeDivide function
 negate 42
-
 
 List.length (List.range 1 12 |> 
     List.filter (\x -> x // 2 > 3)) |> 
         (\ x -> x^2 ) |> (*) 2
 
 
-[1, 2, 3] ++ [4, 5]
+{-
+    ==== Basic data structures: lists and dictionaries =====
+    ========================================================
+-}
 
+concatendated_list = [1, 2, 3] ++ [4, 5] ++ List.range -2 4
 
 catClub = { name = "Li", cats = 2 }
 catClub2 = { catClub | cats = 3}
 catClub3 = {catClub2 | name = "Cat Lord", cats = 77}
 
+Tuple.mapFirst (String.toUpper << String.reverse) ("stressed", 2)
 
-Tuple.mapFirst String.reverse ("stressed", 2)
-
-multiply (x, y, z) = x * y * z
-multiply (2, 3, 4)
+multiply (x, y, z) = x * y * z  -- unpacking tupled arguments, as in python
+multiply (2, 3, 5)
 
 
