@@ -73,16 +73,26 @@ List.length (List.range 1 12 |>
         (\ x -> x^2 ) |> (*) 2
 
 
+celebrateBirthday person = 
+    { person | age = person.age + 1 }
+
+curry = { first = "Curry", last = "Haskell", age = 60 }
+celebrateBirthday curry
+
 {-
-    ==== Basic data structures: lists and dictionaries =====
-    ========================================================
+    ==== Basic data structures: lists, tuples and records =====
+    ===========================================================
 -}
 
-concatendated_list = [1, 2, 3] ++ [4, 5] ++ List.range -2 4
-
-catClub = { name = "Li", cats = 2 }
-catClub2 = { catClub | cats = 3}
-catClub3 = {catClub2 | name = "Cat Lord", cats = 77}
+-- Tuples
+-- isValidName String -> ( Bool, String )
+isValidName name =
+    if String.length name <= 20 then
+        (True, "name accepted!")
+    else
+        (False, "name way too long; max 20 characters")
+isValidName "Tom"
+isValidName "Khaleesi queen of targariens from the house of ..."
 
 Tuple.mapFirst (String.toUpper << String.reverse) ("stressed", 2)
 
@@ -90,3 +100,14 @@ multiply (x, y, z) = x * y * z  -- unpacking tupled arguments, as in python
 multiply (2, 3, 5)
 
 
+-- Lists
+concatendated_list = [1, 2, 3] ++ [4, 5] ++ List.range -2 4
+
+
+-- Records
+catClub = { name = "Li", cats = 2 }
+catClub2 = { catClub | cats = 3}
+catClub3 = {catClub2 | name = "Cat Lord", cats = 77}
+String.toUpper catClub3.name
+
+List.map .name [catClub, catClub2, catClub3]
