@@ -17,4 +17,6 @@
 **/build/
 
 **/elm.js
+.ionide/symbolCache.db
+.ionide/
 **/.mypy_cache/
