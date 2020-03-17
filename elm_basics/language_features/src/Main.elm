@@ -5,12 +5,12 @@
     That is, exactly, the ELM Architecture.
 -}
 module Main exposing (..)
+import Browser
 
+import String exposing (fromInt, toInt)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
-import Browser
-import String exposing (fromInt, toInt)
 
 import Debug exposing (log)
 
@@ -20,6 +20,7 @@ import Debug exposing (log)
     
     Browser.sandbox is a basic app, takes a record as a parameter
 -}
+main : Program () Model Messages
 main = -- no parameters
     Browser.sandbox
         {
@@ -31,7 +32,7 @@ main = -- no parameters
 {-  
     Types and data models are super important - capture all details of app data
     Can be very well a record for simple cases
-    -- TODO(Mihai) a deep dive into types
+    -- Mihai: a deep dive into types
 -}
 
 -- Add : Messages
@@ -46,6 +47,7 @@ type Messages = -- choice type for messages
     | Password String
     | PasswordAgain String
     | InputTemperature String
+    | InputAge String
 
 
 type PasswordStatus = 
@@ -60,6 +62,7 @@ type alias Model =
     , password : String
     , passwordAgain : String
     , temperature : String
+    , age : Int
     }
 
 init : Model
@@ -71,6 +74,7 @@ init = -- initialize the model
     , password = ""
     , passwordAgain = ""
     , temperature = ""
+    , age = 0
     }
 
 {-
@@ -116,6 +120,8 @@ update msg model =  -- item and value
             { model | passwordAgain = pass}
         InputTemperature temp ->
             { model | temperature = temp }
+        InputAge age_value ->
+            { model | age = parseNumber age_value}
 
 {-
     View function, tells Elm how to display stuff 
@@ -136,18 +142,39 @@ view model =
             , viewValidation model
             ]
         , viewConverter model
+        , viewAge model
         ] 
 
+
+viewAge : Model -> Html Messages
+viewAge model =             
+    div [] 
+        [ br [] []
+        , text "\n\n"
+        , input [ placeholder "Insert Age"
+                , onInput InputAge  ] []
+        , viewAgeHandling (String.fromInt model.age)
+        ]
+
+
+viewAgeHandling : String -> Html msg
+viewAgeHandling age = 
+    case isReasonableAge age of
+        Err msg -> 
+            text msg
+        Ok  value -> 
+            text (String.fromInt value)
+        
 
 viewIncrement : Model -> Html Messages
 viewIncrement model = 
     div [] 
-        [ text (fromInt model.value)
+        [ text ("Counter: "  ++ fromInt model.value)
         , text "\n"
         , div [] []
         , input [ onInput ChangedAddText ] [] -- generate Msg when enters
         , button [ onClick Add ] [ text "Add" ]  -- generate Msg when clicks
-        , button [ onClick IncrementByTen ] [ text "Increment by 10" ]
+        , button [ onClick IncrementByTen ] [ text "+10" ]
         , button [ onClick Reset ] [ text "Reset" ]
         , br [] []
         , hr [] []
@@ -204,10 +231,9 @@ viewValidation model =
 
 passwordValidation : String -> String -> PasswordStatus
 passwordValidation password passwordAgain = 
-    if (password == passwordAgain) && 
-       ((String.length password) > 8) then
+    if password == passwordAgain && String.length password > 8 then
         OK
-    else if (String.length password) <= 8 then
+    else if String.length password <= 8 then
         TooShort
     else
         NotMatching
@@ -216,3 +242,21 @@ passwordValidation password passwordAgain =
 viewInput : String -> String -> String -> (String -> msg) -> Html msg
 viewInput t p v toMsg = 
     input [ type_ t, placeholder p, value v, onInput toMsg] []
+
+type AgeError = 
+    NotNumber String
+    | NotBornYet String
+    | Turtle String
+
+isReasonableAge : String -> Result String Int
+isReasonableAge input = 
+    case String.toInt input of 
+        Nothing ->
+            Err "It's not a number"
+        Just age ->
+            if age < 0 then
+                Err "Please try again after you are born"
+            else if age > 135 then
+                Err "Are you some kind of turtle?"
+            else
+                Ok age
