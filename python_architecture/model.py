@@ -18,7 +18,7 @@ class OutOfStock(Exception):
 
 # =========== Value objects (without identity) ========
 # =====================================================
-@dataclass(frozen=True)
+@dataclass(unsafe_hash=True)
 class OrderLine:
     """Alternative is to use `pydantic` as an abstraction over dataclasses
 
@@ -26,6 +26,10 @@ class OrderLine:
     * Dataclasses automatically check for structural equality -> what we need.
     * If we change any of the values -> we get a new OrderLine. 
     * We get .__hash__() for free because of immutability
+
+    On ORM usage
+    * `frozen=True` will not work with SQLAlchemy
+    * need `unsafe_hash=True`
     """
     orderid: OrderReference
     sku: ProductReference
