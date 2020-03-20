@@ -10,29 +10,19 @@ class FakeRepository(repository.AbstractRepository):
     """We can keep the domain dependencies in fixture functions"""
 
     def __init__(self, products):
+        super().__init__()
         self._products = set(products)
 
-    def add(self, product):
+    def _add(self, product):
         self._products.add(product)
     
-    def get(self, sku):
+    def _get(self, sku):
         return next(
-            (p for p in self._products if p.sku == sku), 
-            None
+            (p for p in self._products if p.sku == sku), None
         )
 
     def list(self):
         return list(self._batches)
-    
-    @staticmethod
-    def for_batch(ref, sku, qty, eta=None):
-        """Create a FakeRepository from a list of batches. Syntactic sugar.
-        
-        DEPRECATED - BATCHES NO LONGER USED
-        """
-        return FakeRepository([
-            model.Batch(ref, sku, qty, eta)
-        ])
 
 
 class FakeUnitOfWork(unit_of_work.AbstractUnitOfWork):
@@ -41,7 +31,7 @@ class FakeUnitOfWork(unit_of_work.AbstractUnitOfWork):
         self.products = FakeRepository([])
         self.committed = False
     
-    def commit(self):
+    def _commit(self):
         self.committed = True
     
     def rollback(self):

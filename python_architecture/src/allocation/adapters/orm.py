@@ -4,7 +4,10 @@ The ORM depends the model, but not the other way around! We get the benefits of
 using SQLAlchemy (e.g. alembic for migrations), transparently query domain obj..
 """
 
-from sqlalchemy import (Table, MetaData, Column, Integer, String, Date, ForeignKey)
+from sqlalchemy import (
+    Table, MetaData, Column, Integer, String, Date, 
+    ForeignKey, event
+)
 from sqlalchemy.orm import mapper, relationship
 
 from allocation.domain import model
@@ -60,3 +63,9 @@ def start_mappers() -> None:
     mapper(model.Product, products, properties={
         'batches': relationship(batches_mapper)
     })
+
+
+@event.listens_for(model.Product, 'load')
+def receive_load(product, _):
+    """A little hack in the ORM so that the events work."""
+    product.events = []

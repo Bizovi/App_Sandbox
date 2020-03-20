@@ -5,7 +5,7 @@ neither a ValueObject or entity, e.g. a tax calculator, meaning a function
 does the job.
 """
 
-from typing import List, Dict, Tuple, Optional, NewType
+from typing import List, Dict, Tuple, Optional, NewType, TYPE_CHECKING
 from datetime import date
 
 from allocation.domain import model
@@ -58,7 +58,8 @@ def allocate(
         product = uow.products.get(sku=line.sku)
         if product is None:
             raise InvalidSku(f"Invalid sku {line.sku}")
-
+        
+        # can have a try-finally here to send the message
         batchref = product.allocate(line)
         uow.commit()
 
