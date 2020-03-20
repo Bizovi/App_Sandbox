@@ -10,7 +10,7 @@ RUN apk del --no-cache .build-deps
 
 # oh Bloody Mary, what a hack :(:(
 RUN mkdir -p /code
-COPY *.py /code
+COPY . /code
 WORKDIR /code
 
 # quite a catastrophe: no gunicorn, port 80 ready for breaches

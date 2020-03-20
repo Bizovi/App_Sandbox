@@ -3,8 +3,8 @@ services:
     
     app:
         build:
-            context:
-            dockerfile: Dockefile
+            context: .
+            dockerfile: Dockerfile
         depends_on: 
             - postgres
         environment: 

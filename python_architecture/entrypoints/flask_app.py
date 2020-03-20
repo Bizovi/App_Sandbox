@@ -54,4 +54,4 @@ def allocate_endpoint():
     except (model.OutOfStock, services.InvalidSku) as e:
         return jsonify({"message": str(e)}), 400
 
-    return jsonify({"batchref": batchref}), 200
+    return jsonify({"batchref": batchref}), 201
