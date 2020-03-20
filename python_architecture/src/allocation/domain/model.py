@@ -13,8 +13,9 @@ Choosing Aggregates heavily depends on the bounded context. This way we:
 
 from typing import List, Dict, Tuple, Set, Optional, NewType
 from dataclasses import dataclass
-
 from datetime import date
+
+from allocation.domain import events
 
 # =========== Define types + Exceptions ===============
 # =====================================================
@@ -150,6 +151,8 @@ class Product:  # GlobalSKUStock
         self.batches = batches
         self.version_number = version_number
 
+        self.events: List[events.Event] = []
+
     def allocate(self, line: OrderLine) -> str:
         try:
             batch = next(
@@ -159,4 +162,7 @@ class Product:  # GlobalSKUStock
             self.version_number += 1
             return batch.reference
         except StopIteration:
-            raise OutOfStock(f"Out of stock for sku {line.sku}")
+            self.events.append(events.OutOfStock(line.sku))
+
+            # the event now does the job of the exception
+            # raise OutOfStock(f"Out of stock for sku {line.sku}")
