@@ -59,9 +59,10 @@ def allocate(
         if product is None:
             raise InvalidSku(f"Invalid sku {line.sku}")
         
-        # can have a try-finally here to send the message
+        # 1, can have a try-finally here to send the message
+        # 2, or let service emit own messages (plausible)
         batchref = product.allocate(line)
-        uow.commit()
+        uow.commit()  # always commit unless something goes wrong
 
     return batchref
 
