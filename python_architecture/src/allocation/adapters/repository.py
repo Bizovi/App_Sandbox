@@ -10,11 +10,11 @@ class AbstractRepository(abc.ABC):
     We can keep the interface really slim for now and iterate fast.
     """
     @abc.abstractmethod
-    def add(self, batch: model.Batch):
+    def add(self, product: model.Product):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get(self, reference: str) -> model.Batch:
+    def get(self, sku: str) -> model.Product:
         raise NotImplementedError
 
 
@@ -26,8 +26,8 @@ class SqlAlchemyRepository(AbstractRepository):
     def add(self, batch) -> None:
         self.session.add(batch)
 
-    def get(self, reference) -> str:
-        return self.session.query(model.Batch).filter_by(reference=reference).one()
+    def get(self, sku) -> str:
+        return self.session.query(model.Product).filter_by(sku=sku).first()
 
-    def list(self) -> List[model.Batch]:
-        return self.session.query(model.Batch).all()
+    def list(self) -> List[model.Product]:
+        return self.session.query(model.Product).all()

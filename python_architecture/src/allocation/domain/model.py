@@ -1,7 +1,14 @@
 """The domain logic, with ValueObjects, Entities and Domain Services.
 
 One typically has more than one module, with base classes for Entity, ValueObjects
-Aggregates and (sometimes?) - workflows.
+Aggregates and (sometimes?) - workflows. As a rule of thumb, domain models should 
+have only the data needed to performcalculations.
+
+Choosing Aggregates heavily depends on the bounded context. This way we:
+* Keep the number of aggregates llow
+* Keep their size manageable
+* One aggregate should have one repository
+* Aggregates are the only entities accessible to external world
 """
 
 from typing import List, Dict, Tuple, Set, Optional, NewType
@@ -119,6 +126,8 @@ def allocate(line: OrderLine, batches: List[Batch]) -> BatchReference:
     
     The functional equivalent of this would be much neater, especially with a 
     `map fn xs` (e.g. from toolz). It would also avoid interrupting exec flow.
+
+    DEPRECATED - Since we have it in the Product aggregate
     """
     try:
         batch = next(
@@ -129,3 +138,25 @@ def allocate(line: OrderLine, batches: List[Batch]) -> BatchReference:
     except StopIteration:
         # can't find it in any of the batches
         raise OutOfStock(f'Out of stock for sku {line.sku}')
+
+
+# =========== Aggregates and Data Consistency ================
+# ============================================================
+class Product:  # GlobalSKUStock
+    """Could be also called GlobalSkuStock. It is an aggregate/cluster of entities"""
+    
+    def __init__(self, sku: Sku, batches: List[Batch], version_number: int = 0):
+        self.sku = sku
+        self.batches = batches
+        self.version_number = version_number
+
+    def allocate(self, line: OrderLine) -> str:
+        try:
+            batch = next(
+                b for b in sorted(self.batches) if b.can_allocate(line)
+            )
+            batch.allocate(line)
+            self.version_number += 1
+            return batch.reference
+        except StopIteration:
+            raise OutOfStock(f"Out of stock for sku {line.sku}")
