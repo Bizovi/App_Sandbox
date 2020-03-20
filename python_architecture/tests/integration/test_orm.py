@@ -1,3 +1,5 @@
+"""With the unit of work being introduced, this is no longer needed ..."""
+
 from allocation.domain import model
 from datetime import date
 
