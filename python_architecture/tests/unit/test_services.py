@@ -9,21 +9,27 @@ from allocation.domain import model
 class FakeRepository(repository.AbstractRepository):
     """We can keep the domain dependencies in fixture functions"""
 
-    def __init__(self, batches):
-        self._batches = set(batches)
+    def __init__(self, products):
+        self._products = set(products)
 
-    def add(self, batch):
-        self._batches.add(batch)
+    def add(self, product):
+        self._products.add(product)
     
-    def get(self, reference):
-        return next(b for b in self._batches if b.reference == reference)
+    def get(self, sku):
+        return next(
+            (p for p in self._products if p.sku == sku), 
+            None
+        )
 
     def list(self):
         return list(self._batches)
     
     @staticmethod
     def for_batch(ref, sku, qty, eta=None):
-        """Create a FakeRepository from a list of batches. Syntactic sugar."""
+        """Create a FakeRepository from a list of batches. Syntactic sugar.
+        
+        DEPRECATED - BATCHES NO LONGER USED
+        """
         return FakeRepository([
             model.Batch(ref, sku, qty, eta)
         ])
@@ -32,7 +38,7 @@ class FakeRepository(repository.AbstractRepository):
 class FakeUnitOfWork(unit_of_work.AbstractUnitOfWork):
 
     def __init__(self):
-        self.batches = FakeRepository([])
+        self.products = FakeRepository([])
         self.committed = False
     
     def commit(self):
@@ -42,13 +48,20 @@ class FakeUnitOfWork(unit_of_work.AbstractUnitOfWork):
         pass
 
 
-
-def test_add_batch():
+def test_add_batch_for_new_product():
     uow = FakeUnitOfWork()
     services.add_batch("b1", "CRUNCHY-ARMCHAIR", 100, None, uow)
 
-    assert uow.batches.get("b1") is not None
+    assert uow.products.get("CRUNCHY-ARMCHAIR") is not None
     assert uow.committed
+
+
+def test_add_batch_for_existing_product():
+    uow = FakeUnitOfWork()
+    services.add_batch("b1", "GARISH-RUG", 100, None, uow)
+    services.add_batch("b2", "GARISH-RUG", 99, None, uow)
+
+    assert "b2" in [b.reference for b in uow.products.get("GARISH-RUG").batches]
 
 
 def test_allocate_returns_allocation():

@@ -9,7 +9,7 @@ from allocation import config
 
 class AbstractUnitOfWork(abc.ABC):
     # access to the batchs repository
-    batches: repository.AbstractRepository
+    products: repository.AbstractRepository
 
     def __enter__(self) -> repository.AbstractRepository:
         return self
@@ -28,8 +28,8 @@ class AbstractUnitOfWork(abc.ABC):
 
 # will be overritten in integration tests by SQLite
 DEFAULT_SESSION_FACTORY = sessionmaker(bind=create_engine(
-    config.get_postgres_uri())
-)
+    config.get_postgres_uri(), isolation_level="REPEATABLE_READ"  # read about!!
+))
 
 class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
     def __init__(self, session_factory=DEFAULT_SESSION_FACTORY):
@@ -38,7 +38,7 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
     def __enter__(self):
         """Starts a DB session and instantiate a real repositorys"""
         self.session = self.session_factory()
-        self.batches = repository.SqlAlchemyRepository(self.session)
+        self.products = repository.SqlAlchemyRepository(self.session)
 
         return super().__enter__()
     
