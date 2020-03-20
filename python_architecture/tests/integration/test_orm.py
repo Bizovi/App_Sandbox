@@ -1,7 +1,6 @@
-import model
-from orm import start_mappers
-from conftest import session
+from domain import model
 from datetime import date
+
 
 def test_orderline_mapper_can_load_lines(session):
     session.execute(
@@ -25,6 +24,7 @@ def test_orderline_mapper_can_save_lines(session):
 
     rows = list(session.execute('SELECT orderid, sku, qty FROM "order_lines"'))
     assert rows == [("order1", "DECORATIVE-WIDGET", 12)]
+
 
 def test_retrieving_batches(session):
     session.execute(

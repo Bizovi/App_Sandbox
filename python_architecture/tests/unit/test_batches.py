@@ -1,7 +1,11 @@
-"""Test allocation of order items to a batch of (incoming) products"""
+"""Test allocation of order items to a batch of (incoming) products
 
-import model
+We rewrite some of our unit tests on domain as service tests to gain flexibility.
+The domain unit tests already did their job to act as docs and guide understanding.
+"""
+
 from datetime import date
+from domain import model
 import pytest
 
 def test_allocating_to_batch_reduces_available_qty():

@@ -1,3 +1,9 @@
+"""The domain logic, with ValueObjects, Entities and Domain Services.
+
+One typically has more than one module, with base classes for Entity, ValueObjects
+Aggregates and (sometimes?) - workflows.
+"""
+
 from typing import List, Dict, Tuple, Set, Optional, NewType
 from dataclasses import dataclass
 
@@ -6,15 +12,13 @@ from datetime import date
 # =========== Define types + Exceptions ===============
 # =====================================================
 Quantity = NewType("Quantity", int)
-Sku = NewType("Sku", str)
 
+Sku = NewType("Sku", str)
 BatchReference = NewType("BatchReference", str)
 OrderReference = NewType("OrderReference", str)
-ProductReference = NewType("ProductReference", str)
 
 class OutOfStock(Exception):
     pass
-
 
 # =========== Value objects (without identity) ========
 # =====================================================
@@ -23,16 +27,16 @@ class OrderLine:
     """Alternative is to use `pydantic` as an abstraction over dataclasses
 
     Some remarks:   
-    * Dataclasses automatically check for structural equality -> what we need.
+    * Dataclasses automatically check for structural equality!
     * If we change any of the values -> we get a new OrderLine. 
     * We get .__hash__() for free because of immutability
 
-    On ORM usage
+    On ORM usage:
     * `frozen=True` will not work with SQLAlchemy
-    * need `unsafe_hash=True`
+    * need `unsafe_hash=True`, which is a **shady hack**
     """
     orderid: OrderReference
-    sku: ProductReference
+    sku: Sku
     qty: Quantity
 
 
@@ -58,10 +62,31 @@ class Batch(object):
         self.sku = sku
         self.eta = eta
 
-        # understanding which lines have been allocated
         self._purchased_quantity = qty
         self._allocations: Set[OrderLine] = set()
-    
+
+    def __repr__(self) -> str:
+        """Display the representation of the object (entity -> id)"""
+        return f'<Batch {self.reference}>'
+
+    def __eq__(self, other) -> bool:
+        """Override the equality for comparing the entities by ids."""
+        if not isinstance(other, Batch):
+            return False
+        return other.reference == self.reference
+
+    def __hash__(self) -> int:
+        """If we want to use objects in sets or as keys of a dictionary."""
+        return hash(self.reference)
+
+    def __gt__(self, other) -> bool:
+        """Important for `sortable`, knowing how to sort an array of batches"""
+        if self.eta is None:
+            return False
+        if other.eta is None:
+            return True
+        return self.eta > other.eta
+
     def allocate(self, line: OrderLine) -> None:
         """Would be perfect if would return a new object and not mutate"""
         if self.can_allocate(line):
@@ -70,9 +95,6 @@ class Batch(object):
     def deallocate(self, line: OrderLine) -> None:
         if line in self._allocations:
             self._allocations.remove(line)
-
-    def can_allocate(self, line: OrderLine) -> bool:
-        return self.sku == line.sku and self.available_quantity >= line.qty
     
     @property
     def allocated_quantity(self) -> int:
@@ -83,35 +105,20 @@ class Batch(object):
     def available_quantity(self) -> int:
         return self._purchased_quantity - self.allocated_quantity
 
-    def __eq__(self, other):
-        """Override the equality for checking the entity. Can also override
-        the .__hash__() for usage in sets and as dict keys
+    def can_allocate(self, line: OrderLine) -> bool:
+        """A helper function which checks if can allocate SKU to a batch.
+        Checks if line (SKU) exists in batch and that there is enough inventory.
         """
-        if not isinstance(other, Batch):
-            return False
-        return other.reference == self.reference
-    
-    def __hash__(self) -> int:
-        return hash(self.reference)
-
-    def __gt__(self, other) -> bool:
-        """Syntactic sugar to know which ETA is greater"""
-        if self.eta is None:
-            return False
-        if other.eta is None:
-            return True
-        return self.eta > other.eta
-
-    def __repr__(self) -> str:
-        return f'<Batch {self.reference}>'
+        return self.sku == line.sku and self.available_quantity >= line.qty
 
 
 # =========== Domain Service Functions ================
 # =====================================================
 def allocate(line: OrderLine, batches: List[Batch]) -> BatchReference:
-    """The functional equivalent of this would be much neater, especially
-    with a `map fn xs` (e.g. from toolz). It would also avoid interrupting
-    the execution flow.
+    """A domain service which allocates SKUs to a batch and returns batch refs.
+    
+    The functional equivalent of this would be much neater, especially with a 
+    `map fn xs` (e.g. from toolz). It would also avoid interrupting exec flow.
     """
     try:
         batch = next(
