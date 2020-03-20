@@ -1,13 +1,13 @@
-"""Dependency inversion with a typical orm (SQLAlchemy).
+"""Dependency inversion with a popular ORM - SQLAlchemy. Can be easily switched.
 
-The ORM knows/depends on about the model, but not the other way around. We get
-the benefits of using SQLAlchemy (alembic for migrations), transparently query
-domain classes & so on ...
+The ORM depends the model, but not the other way around! We get the benefits of 
+using SQLAlchemy (e.g. alembic for migrations), transparently query domain obj..
 """
 
 from sqlalchemy import (Table, MetaData, Column, Integer, String, Date, ForeignKey)
 from sqlalchemy.orm import mapper, relationship
-import model
+
+from domain import model
 
 
 metadata = MetaData()
@@ -39,7 +39,9 @@ allocations = Table(
 
 def start_mappers() -> None:
     """Function to load and save domain model instances from and to a database.
+    
     If we don't call the function, the model will be unaware of the database.
+    Map model.Batch -> Table.batches. We're basically working with an aggregate.
     """
     lines_mapper = mapper(model.OrderLine, order_lines)
     mapper(model.Batch, batches, properties={
