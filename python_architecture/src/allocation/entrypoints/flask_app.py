@@ -10,9 +10,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 import config
-from domain import model
-from adapters import orm, repository
-from service_layer import services
+from allocation.domain import model
+from allocation.adapters import orm, repository
+from allocation.service_layer import services
 
 
 orm.start_mappers()
@@ -30,7 +30,7 @@ def add_batch():
         eta = datetime.fromisoformat(eta).date()
     
     services.add_batch(
-        request.json.get("ref"), request.json.get("sku"), request.json.get("qty"),
+        request.json["ref"], request.json["sku"], request.json["qty"],
         eta, repo, session  # dependency injections
     )
 
@@ -46,9 +46,9 @@ def allocate_endpoint():
     # pass the commands into the domain service (use-case) ====
     try:
         batchref = services.allocate(
-            request.json.get("orderid"),
-            request.json.get("sku"),
-            request.json.get("qty"),
+            request.json["orderid"],
+            request.json["sku"],
+            request.json["qty"],
             repo, session     
         )
     except (model.OutOfStock, services.InvalidSku) as e:
