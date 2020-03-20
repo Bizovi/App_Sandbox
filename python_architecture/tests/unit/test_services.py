@@ -1,8 +1,8 @@
 """Tests about the orchestration stuff, tested against service layer in memory"""
 
-from adapters import repository
-from service_layer import services
-from domain import model
+from allocation.adapters import repository
+from allocation.service_layer import services
+from allocation.domain import model
 import pytest
 
 class FakeRepository(repository.AbstractRepository):
@@ -38,6 +38,8 @@ class FakeSession(object):
 def test_add_batch():
     repo, session = FakeRepository([]), FakeSession()
     services.add_batch("b1", "CRUNCHY-ARMCHAIR", 100, None, repo, session)
+
+    print(session.committed)
     assert repo.get("b1") is not None
     assert session.committed
 

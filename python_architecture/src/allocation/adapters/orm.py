@@ -7,7 +7,7 @@ using SQLAlchemy (e.g. alembic for migrations), transparently query domain obj..
 from sqlalchemy import (Table, MetaData, Column, Integer, String, Date, ForeignKey)
 from sqlalchemy.orm import mapper, relationship
 
-from domain import model
+from allocation.domain import model
 
 
 metadata = MetaData()

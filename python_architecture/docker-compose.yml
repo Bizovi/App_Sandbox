@@ -10,8 +10,11 @@ services:
         environment: 
             - DB_HOST=postgres
             - DB_PASSWORD=abc123
+            - API_HOST=app
+            - PYTHONDONTWRITEBYTECODE=1
         volumes:
-            - ./:/code
+            - ./src:/src
+            - ./tests:/tests
         ports:
             - "5005:80"
     
@@ -19,6 +22,6 @@ services:
         image: postgres:9.6
         environment: 
             - POSTGRES_USER=allocation
-            - POSTGRES_PASSWORD=allocation
+            - POSTGRES_PASSWORD=abc123
         ports:
             - "54321:5432"

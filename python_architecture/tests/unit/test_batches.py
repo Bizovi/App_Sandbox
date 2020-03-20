@@ -5,7 +5,7 @@ The domain unit tests already did their job to act as docs and guide understandi
 """
 
 from datetime import date
-from domain import model
+from allocation.domain import model
 import pytest
 
 def test_allocating_to_batch_reduces_available_qty():

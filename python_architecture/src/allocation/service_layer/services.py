@@ -8,9 +8,9 @@ does the job.
 from typing import List, Dict, Tuple, Optional, NewType
 from datetime import date
 
-from domain import model
-from domain.model import OrderLine
-from adapters.repository import AbstractRepository
+from allocation.domain import model
+from allocation.domain.model import OrderLine
+from allocation.adapters.repository import AbstractRepository
 
 
 class InvalidSku(Exception):
@@ -30,7 +30,7 @@ def add_batch(
     since they come from external world (i.e. the POST request)
     """
     repo.add(model.Batch(ref, sku, qty, eta))
-    session.commit
+    session.commit()
 
 
 def allocate(
